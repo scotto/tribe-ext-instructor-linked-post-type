@@ -277,9 +277,12 @@ if (
 		 */
 		protected function get_custom_field_labels() {
 			$field_labels = array(
-				'Phone',
-				'Website',
-				'Email Address',
+				'Artist Name',
+				'Artist Last Name',
+				'Artist Description',
+				'Artist Instrument',
+				'Artist Dates',
+				'Artist Website'
 			);
 
 			$field_labels = array_map( 'esc_html', $field_labels );
