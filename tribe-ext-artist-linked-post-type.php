@@ -1,16 +1,16 @@
 <?php
 /**
- * Plugin Name:       The Events Calendar Extension: Instructor Linked Post Type
+ * Plugin Name:       The Events Calendar Extension: Artist Linked Post Type
  * Plugin URI:        https://theeventscalendar.com/knowledgebase/linked-post-types/
- * GitHub Plugin URI: https://github.com/mt-support/tribe-ext-instructor-linked-post-type
- * Description:       A boilerplate/starter extension for you to use as-is or fork. Used as-is, an "Instructor" custom post type will be created and linked to The Events Calendar's Events, like Organizers are, and basic output will be added to the Single Event Page. See this plugin file's code comments for forking instructions.
+ * GitHub Plugin URI: https://github.com/scotto/tribe-ext-artist-linked-post-type
+ * Description:       An "Artist" custom post type will be linked to The Events Calendar's Events, like Organizers are, and basic output will be added to the Single Event Page.
  * Version:           1.0.1
- * Extension Class:   Tribe__Extension__Instructor_Linked_Post_Type
- * Author:            Modern Tribe, Inc.
- * Author URI:        http://m.tri.be/1971
+ * Extension Class:   Tribe__Extension__Artist_Linked_Post_Type
+ * Author:            Scott Hepler, originally Modern Tribe, Inc.
+ * Author URI:        http://scotthepler.com
  * License:           GPL version 3 or any later version
  * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
- * Text Domain:       tribe-ext-instructor-linked-post-type
+ * Text Domain:       tribe-ext-artist-linked-post-type
  */
 
 /**
@@ -25,21 +25,21 @@
  * And add your own custom fields -- see $this->get_custom_field_labels()
  * Check all other "TODO" notes throughout this file
  * Possibly change this plugin's header to offer a more helpful description within the Plugins List wp-admin screen.
- * Test everything is working as desired, including saving of meta data and customizing how it outputs to the Single Events Page and your single instructor page.
+ * Test everything is working as desired, including saving of meta data and customizing how it outputs to the Single Events Page and your single artist page.
  */
 
-if ( ! function_exists( 'tribe_ext_is_event_instructor' ) ) {
+if ( ! function_exists( 'tribe_ext_is_event_artist' ) ) {
 	/**
-	 * Conditional tag to check if the current page is a single instructor page.
+	 * Conditional tag to check if the current page is a single artist page.
 	 *
 	 * @return bool
 	 **/
-	function tribe_ext_is_event_instructor() {
+	function tribe_ext_is_event_artist() {
 		global $wp_query;
 
-		$tribe_ext_is_event_instructor = ! empty( $wp_query->tribe_ext_is_event_instructor );
+		$tribe_ext_is_event_artist = ! empty( $wp_query->tribe_ext_is_event_artist );
 
-		return apply_filters( 'tribe_ext_query_is_event_instructor', $tribe_ext_is_event_instructor );
+		return apply_filters( 'tribe_ext_query_is_event_artist', $tribe_ext_is_event_artist );
 	}
 }
 
@@ -52,12 +52,12 @@ if ( ! function_exists( 'tribe_ext_is_event_instructor' ) ) {
  */
 if (
 	class_exists( 'Tribe__Extension' )
-	&& ! class_exists( 'Tribe__Extension__Instructor_Linked_Post_Type' )
+	&& ! class_exists( 'Tribe__Extension__Artist_Linked_Post_Type' )
 ) {
 	/**
 	 * Extension main class, class begins loading on init() function.
 	 */
-	class Tribe__Extension__Instructor_Linked_Post_Type extends Tribe__Extension {
+	class Tribe__Extension__Artist_Linked_Post_Type extends Tribe__Extension {
 
 		/**
 		 * Our post type's key.
@@ -69,7 +69,8 @@ if (
 		 *
 		 * @return string
 		 */
-		const POST_TYPE_KEY = 'tribe_ext_instructor';
+		// const POST_TYPE_KEY = 'tribe_ext_artist';
+		const POST_TYPE_KEY = 'tribe_artist';
 
 		/**
 		 * Our post type's rewrite slug and singular_name_lowercase.
@@ -78,7 +79,7 @@ if (
 		 *
 		 * @return string
 		 */
-		const POST_TYPE_SLUG = 'instructor';
+		const POST_TYPE_SLUG = 'artist';
 
 		/**
 		 * Is Filterbar active. If yes, we'll add some extra functionality.
@@ -116,9 +117,9 @@ if (
 		 */
 		public function init() {
 			// Load plugin textdomain
-			load_plugin_textdomain( 'tribe-ext-instructor-linked-post-type', false, basename( dirname( __FILE__ ) ) . '/languages/' );
+			load_plugin_textdomain( 'tribe-ext-artist-linked-post-type', false, basename( dirname( __FILE__ ) ) . '/languages/' );
 
-			add_action( 'init', array( $this, 'register_our_post_type' ) );
+			// add_action( 'init', array( $this, 'register_our_post_type' ) );
 			add_action( 'init', array( $this, 'link_post_type_to_events' ) );
 			add_action( 'wp_loaded', array( $this, 'set_our_capabilities' ) );
 			add_filter( 'tribe_events_linked_post_type_args', array( $this, 'filter_linked_post_type_args' ), 10, 2 );
@@ -140,7 +141,7 @@ if (
 
 			add_filter( 'tribe_events_linked_post_type_meta_key', array( $this, 'filter_linked_post_type_meta_key' ), 10, 2 );
 
-			// Single Instructor page: Handling the No Events Found situation.
+			// Single Artist page: Handling the No Events Found situation.
 			// We followed how the Tribe__Events__Template_Factory class does it.
 			// cleanup after view (reset query, etc)
 			add_action( 'tribe_events_after_view', array( $this, 'shutdown_view' ) );
@@ -183,8 +184,8 @@ if (
 		 * Check required plugins after all Tribe plugins have loaded.
 		 */
 		public function add_filter_to_filterbar() {
-			if ( class_exists( 'Tribe__Events__Filterbar__Filters__Instructor' ) ) {
-				new Tribe__Events__Filterbar__Filters__Instructor( $this->get_post_type_label(), self::POST_TYPE_SLUG );
+			if ( class_exists( 'Tribe__Events__Filterbar__Filters__Artist' ) ) {
+				new Tribe__Events__Filterbar__Filters__Artist( $this->get_post_type_label(), self::POST_TYPE_SLUG );
 			}
 		}
 
@@ -270,7 +271,7 @@ if (
 		 * Enter "Phone" or "Email Address" -- however you want it to look to the
 		 * user, and the actual custom field key will be created from it.
 		 *
-		 * @see Tribe__Extension__Instructor_Linked_Post_Type::sanitize_a_custom_fields_value()
+		 * @see Tribe__Extension__Artist_Linked_Post_Type::sanitize_a_custom_fields_value()
 		 *
 		 * @return array
 		 */
@@ -365,7 +366,7 @@ if (
 		 * key, and then prepended with an underscore so it's "hidden" from default
 		 * wp-admin Custom Fields editing.
 		 *
-		 * @see Tribe__Extension__Instructor_Linked_Post_Type::get_custom_field_labels()
+		 * @see Tribe__Extension__Artist_Linked_Post_Type::get_custom_field_labels()
 		 * @see sanitize_key()
 		 *
 		 * @return array
@@ -405,30 +406,30 @@ if (
 		 */
 		public function register_our_post_type() {
 			$labels = array(
-				'name'                    => esc_html_x( 'Instructors', 'Post type general name', 'tribe-ext-instructor-linked-post-type' ),
-				'singular_name'           => esc_html_x( 'Instructor', 'Post type singular name', 'tribe-ext-instructor-linked-post-type' ),
-				'singular_name_lowercase' => esc_html_x( self::POST_TYPE_SLUG, 'Post type singular name', 'tribe-ext-instructor-linked-post-type' ),
+				'name'                    => esc_html_x( 'Artists', 'Post type general name', 'tribe-ext-artist-linked-post-type' ),
+				'singular_name'           => esc_html_x( 'Artist', 'Post type singular name', 'tribe-ext-artist-linked-post-type' ),
+				'singular_name_lowercase' => esc_html_x( self::POST_TYPE_SLUG, 'Post type singular name', 'tribe-ext-artist-linked-post-type' ),
 				// not part of WP's labels but is required by Linked_Posts::register_linked_post_type()
-				'add_new'                 => esc_html_x( 'Add New', self::POST_TYPE_KEY, 'tribe-ext-instructor-linked-post-type' ),
-				'add_new_item'            => esc_html__( 'Add New Instructor', 'tribe-ext-instructor-linked-post-type' ),
-				'edit_item'               => esc_html__( 'Edit Instructor', 'tribe-ext-instructor-linked-post-type' ),
-				'new_item'                => esc_html__( 'New Instructor', 'tribe-ext-instructor-linked-post-type' ),
-				'view_item'               => esc_html__( 'View Instructor', 'tribe-ext-instructor-linked-post-type' ),
-				'view_items'              => esc_html__( 'View Instructors', 'tribe-ext-instructor-linked-post-type' ),
-				'search_items'            => esc_html__( 'Search Instructors', 'tribe-ext-instructor-linked-post-type' ),
-				'not_found'               => esc_html__( 'No instructors found', 'tribe-ext-instructor-linked-post-type' ),
-				'not_found_in_trash'      => esc_html__( 'No instructors found in Trash', 'tribe-ext-instructor-linked-post-type' ),
-				'all_items'               => esc_html__( 'Instructors', 'tribe-ext-instructor-linked-post-type' ),
-				'archives'                => esc_html__( 'Instructor Archives', 'tribe-ext-instructor-linked-post-type' ),
-				'insert_into_item'        => esc_html__( 'Insert into instructor', 'tribe-ext-instructor-linked-post-type' ),
-				'uploaded_to_this_item'   => esc_html__( 'Uploaded to this instructor', 'tribe-ext-instructor-linked-post-type' ),
-				'items_list'              => esc_html__( 'Instructors list', 'tribe-ext-instructor-linked-post-type' ),
-				'items_list_navigation'   => esc_html__( 'Instructors list navigation', 'tribe-ext-instructor-linked-post-type' ),
+				'add_new'                 => esc_html_x( 'Add New', self::POST_TYPE_KEY, 'tribe-ext-artist-linked-post-type' ),
+				'add_new_item'            => esc_html__( 'Add New Artist', 'tribe-ext-artist-linked-post-type' ),
+				'edit_item'               => esc_html__( 'Edit Artist', 'tribe-ext-artist-linked-post-type' ),
+				'new_item'                => esc_html__( 'New Artist', 'tribe-ext-artist-linked-post-type' ),
+				'view_item'               => esc_html__( 'View Artist', 'tribe-ext-artist-linked-post-type' ),
+				'view_items'              => esc_html__( 'View Artists', 'tribe-ext-artist-linked-post-type' ),
+				'search_items'            => esc_html__( 'Search Artists', 'tribe-ext-artist-linked-post-type' ),
+				'not_found'               => esc_html__( 'No artists found', 'tribe-ext-artist-linked-post-type' ),
+				'not_found_in_trash'      => esc_html__( 'No artists found in Trash', 'tribe-ext-artist-linked-post-type' ),
+				'all_items'               => esc_html__( 'Artists', 'tribe-ext-artist-linked-post-type' ),
+				'archives'                => esc_html__( 'Artist Archives', 'tribe-ext-artist-linked-post-type' ),
+				'insert_into_item'        => esc_html__( 'Insert into artist', 'tribe-ext-artist-linked-post-type' ),
+				'uploaded_to_this_item'   => esc_html__( 'Uploaded to this artist', 'tribe-ext-artist-linked-post-type' ),
+				'items_list'              => esc_html__( 'Artists list', 'tribe-ext-artist-linked-post-type' ),
+				'items_list_navigation'   => esc_html__( 'Artists list navigation', 'tribe-ext-artist-linked-post-type' ),
 			);
 
 			$args = array(
 				'labels'              => $labels,
-				'description'         => esc_html__( 'Instructors linked to Events', 'tribe-ext-instructor-linked-post-type' ),
+				'description'         => esc_html__( 'Artists linked to Events', 'tribe-ext-artist-linked-post-type' ),
 				'public'              => true,
 				'exclude_from_search' => true,
 				'show_in_menu'        => 'edit.php?post_type=' . Tribe__Events__Main::POSTTYPE,
@@ -505,7 +506,7 @@ if (
 		 * @return string
 		 */
 		public function get_post_id_field_name() {
-			return $this->get_post_type_label( 'singular_name' ) . '_ID'; // Instructor_ID
+			return $this->get_post_type_label( 'singular_name' ) . '_ID'; // Artist_ID
 		}
 
 		/**
@@ -522,9 +523,9 @@ if (
 		 * @return string
 		 */
 		private function get_order_meta_key() {
-			$key = '_' . $this->get_post_id_field_name() . '_Order'; // _Instructor_ID_Order
+			$key = '_' . $this->get_post_id_field_name() . '_Order'; // _Artist_ID_Order
 
-			return sanitize_key( $key ); // _instructor_id_order
+			return sanitize_key( $key ); // _artist_id_order
 		}
 
 		/**
@@ -606,7 +607,7 @@ if (
 
 			add_meta_box(
 				$meta_box_id,
-				sprintf( esc_html__( '%s Information', 'tribe-ext-instructor-linked-post-type' ), $this->get_post_type_label( 'singular_name' ) ),
+				sprintf( esc_html__( '%s Information', 'tribe-ext-artist-linked-post-type' ), $this->get_post_type_label( 'singular_name' ) ),
 				array( $this, 'meta_box' ),
 				self::POST_TYPE_KEY,
 				'normal',
@@ -690,7 +691,7 @@ if (
 				self::POST_TYPE_KEY,
 				esc_attr( $custom_field_label ),
 				$custom_field_key,
-				esc_html__( $custom_field_label . ':', 'tribe-ext-instructor-linked-post-type' ),
+				esc_html__( $custom_field_label . ':', 'tribe-ext-artist-linked-post-type' ),
 				$name,
 				esc_html( $value )
 			);
@@ -749,7 +750,7 @@ if (
 		}
 
 		/**
-		 * Saves the instructor information passed via an event.
+		 * Saves the artist information passed via an event.
 		 *
 		 * @param string $id               Post type ID index.
 		 * @param array  $data             Data for submission.
@@ -789,9 +790,9 @@ if (
 		}
 
 		/**
-		 * Creates a new Instructor
+		 * Creates a new Artist
 		 *
-		 * @param array  $data        The Instructor data.
+		 * @param array  $data        The Artist data.
 		 * @param string $post_status the Intended post status.
 		 *
 		 * @see Tribe__Events__Organizer::create() Inspiration for additional functionality, such as implementing Avoid Duplicates.
@@ -807,7 +808,7 @@ if (
 				)
 				|| $this->has_this_post_types_custom_fields( $data )
 			) {
-				$title   = isset( $data[$name_field_index] ) ? $data[$name_field_index] : sprintf( esc_html__( 'Unnamed %s', 'tribe-ext-instructor-linked-post-type' ), $this->get_post_type_label( 'singular_name' ) );
+				$title   = isset( $data[$name_field_index] ) ? $data[$name_field_index] : sprintf( esc_html__( 'Unnamed %s', 'tribe-ext-artist-linked-post-type' ), $this->get_post_type_label( 'singular_name' ) );
 				$content = isset( $data['Description'] ) ? $data['Description'] : '';
 				$slug    = sanitize_title( $title );
 
@@ -828,12 +829,12 @@ if (
 					'post_date_gmt' => $data['post_date_gmt'],
 				);
 
-				$instructor_id = wp_insert_post( array_filter( $postdata ), true );
+				$artist_id = wp_insert_post( array_filter( $postdata ), true );
 
-				if ( ! is_wp_error( $instructor_id ) ) {
-					$this->save_meta( $instructor_id, $data );
+				if ( ! is_wp_error( $artist_id ) ) {
+					$this->save_meta( $artist_id, $data );
 
-					return $instructor_id;
+					return $artist_id;
 				}
 			}
 
@@ -841,20 +842,20 @@ if (
 		}
 
 		/**
-		 * Updates an instructor.
+		 * Updates an artist.
 		 *
 		 * This method is different from Tribe__Events__Organizer::update(). We
 		 * removed things we didn't need for this context, since we only really
 		 * pass the custom fields to this and let WordPress core do it's thing
 		 * with the title, post_content, etc.
 		 *
-		 * @see Tribe__Extension__Instructor_Linked_Post_Type::event_edit_form_save_data()
-		 * @see Tribe__Extension__Instructor_Linked_Post_Type::save_data_from_meta_box()
+		 * @see Tribe__Extension__Artist_Linked_Post_Type::event_edit_form_save_data()
+		 * @see Tribe__Extension__Artist_Linked_Post_Type::save_data_from_meta_box()
 		 *
-		 * @param int   $id   The instructor ID to update.
-		 * @param array $data The instructor data.
+		 * @param int   $id   The artist ID to update.
+		 * @param array $data The artist data.
 		 *
-		 * @return int The updated instructor post ID
+		 * @return int The updated artist post ID
 		 */
 		protected function update_existing( $id, $data ) {
 			$data = new Tribe__Data( $data, '' );
@@ -1067,14 +1068,14 @@ if (
 				! is_admin()
 				&& self::POST_TYPE_KEY === $query->get( 'post_type' )
 			) {
-				$query->tribe_ext_is_event_instructor = true;
+				$query->tribe_ext_is_event_artist = true;
 
 				// Override Previous and Next navigation links
 				// Commented the following two filters out because the Past Events and Next Events displays do not work (they don't work for Organizers or Venues either) so we just force not displaying the links at all (the next two filters below).
 				// add_filter( 'tribe_get_listview_prev_link', array( $this, 'override_previous_link' ) );
 				// add_filter( 'tribe_get_listview_next_link', array( $this, 'override_next_link' ) );
 
-				// Single Instructor Page: Force Previous and Next navigation links to not appear.
+				// Single Artist Page: Force Previous and Next navigation links to not appear.
 				add_filter( 'tribe_has_previous_event', '__return_false' );
 				add_filter( 'tribe_has_next_event', '__return_false' );
 			}
@@ -1095,7 +1096,7 @@ if (
 			global $wp_query;
 
 			// Cannot use is_singular() within pre_get_posts because the queried object is not yet set
-			if ( ! empty( $wp_query->tribe_ext_is_event_instructor ) ) {
+			if ( ! empty( $wp_query->tribe_ext_is_event_artist ) ) {
 				return true;
 			} else {
 				return (bool) $tribe_is_event_query;
@@ -1163,7 +1164,7 @@ if (
 		}
 
 		/**
-		 * Override the Previous Events link on the Single Instructor page.
+		 * Override the Previous Events link on the Single Artist page.
 		 *
 		 * @param $link
 		 *
@@ -1195,7 +1196,7 @@ if (
 		}
 
 		/**
-		 * Override the Next Events link on the Single Instructor page.
+		 * Override the Next Events link on the Single Artist page.
 		 *
 		 * @param $link
 		 *
@@ -1230,7 +1231,7 @@ if (
 		 * Sets an appropriate no results found message.
 		 */
 		protected function nothing_found_notice() {
-			Tribe__Notices::set_notice( 'event-search-no-results', esc_html__( 'There were no results found.', 'tribe-ext-instructor-linked-post-type' ) );
+			Tribe__Notices::set_notice( 'event-search-no-results', esc_html__( 'There were no results found.', 'tribe-ext-artist-linked-post-type' ) );
 		}
 
 		/**
